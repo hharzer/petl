@@ -22,7 +22,7 @@ def natural_key(left, right):
     rhdr = header(right)
     rflds = list(map(str, rhdr))
     key = [f for f in lflds if f in rflds]
-    assert len(key) > 0, 'no fields in common'
+    assert key, 'no fields in common'
     if len(key) == 1:
         key = key[0]  # deal with singletons
     return key
@@ -36,10 +36,7 @@ def keys_from_args(left, right, key, lkey, rkey):
     elif key is not None and lkey is rkey is None:
         # common key specified
         lkey = rkey = key
-    elif key is None and lkey is not None and rkey is not None:
-        # left and right keys specified
-        pass
-    else:
+    elif key is not None or lkey is None or rkey is None:
         raise ArgumentError(
             'bad key arguments: either specify key, or specify both lkey and '
             'rkey, or provide no key/lkey/rkey arguments at all (natural join)'
@@ -497,18 +494,18 @@ class CrossJoinView(Table):
 def itercrossjoin(sources, prefix):
 
     # construct fields
-    outhdr = list()
+    outhdr = []
     for i, s in enumerate(sources):
         if prefix:
             # use one-based numbering
-            outhdr.extend([text_type(i+1) + '_' + text_type(f) for f in header(s)])
+            outhdr.extend([f'{text_type(i+1)}_{text_type(f)}' for f in header(s)])
         else:
             outhdr.extend(header(s))
     yield tuple(outhdr)
 
     datasrcs = [data(src) for src in sources]
     for prod in itertools.product(*datasrcs):
-        outrow = list()
+        outrow = []
         for row in prod:
             outrow.extend(row)
         yield tuple(outrow)
@@ -904,7 +901,7 @@ class ConvertToIncrementingCounterView(Table):
         value = self.value
         vidx = hdr.index(value)
         outhdr = list(hdr)
-        outhdr[vidx] = '%s_id' % value
+        outhdr[vidx] = f'{value}_id'
         yield tuple(outhdr)
         offset, multiplier = self.autoincrement
         for n, (_, group) in enumerate(rowgroupby(table, value)):

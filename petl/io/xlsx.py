@@ -126,14 +126,10 @@ def toxlsx(tbl, filename, sheet=None, write_header=True, mode="replace"):
 
 
 def _load_or_create_workbook(filename, mode, sheet):
-    if PY3:
-        FileNotFound = FileNotFoundError
-    else:
-        FileNotFound = IOError
-
+    FileNotFound = FileNotFoundError if PY3 else IOError
     import openpyxl
     wb = None
-    if not (mode == "overwrite" or (mode == "replace" and sheet is None)):
+    if mode != "overwrite" and (mode != "replace" or sheet is not None):
         try:
             source = read_source_from_arg(filename)
             with source.open('rb') as source2:
@@ -156,7 +152,7 @@ def _insert_sheet_on_workbook(mode, sheet, wb):
         ws = wb.create_sheet(title=sheet)
         # it creates a sheet named "foo1" if "foo" exists.
         if sheet is not None and ws.title != sheet:
-            raise ValueError("Sheet %s already exists in file" % sheet)
+            raise ValueError(f"Sheet {sheet} already exists in file")
     elif mode == "overwrite":
         ws = wb.create_sheet(title=sheet)
     else:

@@ -63,7 +63,7 @@ def facettupletrees(table, key, start='start', stop='stop', value=None):
     assert len(keyindices) > 0, 'invalid key'
     getkey = itemgetter(*keyindices)
 
-    trees = dict()
+    trees = {}
     for row in it:
         k = getkey(row)
         if k not in trees:
@@ -99,7 +99,7 @@ def facetrecordtrees(table, key, start='start', stop='stop'):
     getstart = attrgetter(start)
     getstop = attrgetter(stop)
     getkey = attrgetter(key)
-    trees = dict()
+    trees = {}
     for rec in records(table):
         k = getkey(rec)
         if k not in trees:
@@ -200,11 +200,11 @@ def _search_tree(tree, start, stop, include_stop):
             stop += 1
             start -= 1
         args = (start, stop)
-    if len(args) == 2:
-        results = sorted(tree.overlap(*args))
-    else:
-        results = sorted(tree.at(*args))
-    return results
+    return (
+        sorted(tree.overlap(*args))
+        if len(args) == 2
+        else sorted(tree.at(*args))
+    )
 
 
 class IntervalTreeLookup(object):
@@ -354,10 +354,10 @@ def facetintervallookup(table, key, start='start', stop='stop',
     """
 
     trees = facettupletrees(table, key, start=start, stop=stop, value=value)
-    out = dict()
-    for k in trees:
-        out[k] = IntervalTreeLookup(trees[k], include_stop=include_stop)
-    return out
+    return {
+        k: IntervalTreeLookup(trees[k], include_stop=include_stop)
+        for k in trees
+    }
 
 
 Table.facetintervallookup = facetintervallookup
@@ -376,11 +376,12 @@ def facetintervallookupone(table, key, start='start', stop='stop',
     """
     
     trees = facettupletrees(table, key, start=start, stop=stop, value=value)
-    out = dict()
-    for k in trees:
-        out[k] = IntervalTreeLookupOne(trees[k], include_stop=include_stop,
-                                       strict=strict)
-    return out
+    return {
+        k: IntervalTreeLookupOne(
+            trees[k], include_stop=include_stop, strict=strict
+        )
+        for k in trees
+    }
 
 
 Table.facetintervallookupone = facetintervallookupone
@@ -394,10 +395,10 @@ def facetintervalrecordlookup(table, key, start='start', stop='stop',
     """
 
     trees = facetrecordtrees(table, key, start=start, stop=stop)
-    out = dict()
-    for k in trees:
-        out[k] = IntervalTreeLookup(trees[k], include_stop=include_stop)
-    return out
+    return {
+        k: IntervalTreeLookup(trees[k], include_stop=include_stop)
+        for k in trees
+    }
 
 
 Table.facetintervalrecordlookup = facetintervalrecordlookup
@@ -412,11 +413,12 @@ def facetintervalrecordlookupone(table, key, start, stop, include_stop=False,
     """
     
     trees = facetrecordtrees(table, key, start=start, stop=stop)
-    out = dict()
-    for k in trees:
-        out[k] = IntervalTreeLookupOne(trees[k], include_stop=include_stop,
-                                       strict=strict)
-    return out
+    return {
+        k: IntervalTreeLookupOne(
+            trees[k], include_stop=include_stop, strict=strict
+        )
+        for k in trees
+    }
 
 
 Table.facetintervalrecordlookupone = facetintervalrecordlookupone
@@ -762,11 +764,11 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lkey,
         if not anti:
             outhdr.extend(rflds)
     else:
-        outhdr = list(lprefix + f for f in lflds)
+        outhdr = [lprefix + f for f in lflds]
         if not anti:
             outhdr.extend(rprefix + f for f in rflds)
     yield tuple(outhdr)
-    
+
     # create getters for start and stop positions
     getlstart = itemgetter(lflds.index(lstart))
     getlstop = itemgetter(lflds.index(lstop))
@@ -779,8 +781,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lkey,
         for lrow in lit:
             start = getlstart(lrow)
             stop = getlstop(lrow)
-            rrows = search(start, stop)
-            if rrows:
+            if rrows := search(start, stop):
                 if not anti:
                     for rrow in rrows:
                         outrow = list(lrow)
@@ -796,9 +797,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lkey,
         # build interval lookup for right table
         lookup = facetintervallookup(right, key=rkey, start=rstart,
                                      stop=rstop, include_stop=include_stop)
-        search = dict()
-        for f in lookup:
-            search[f] = lookup[f].search
+        search = {f: lookup[f].search for f in lookup}
         # getter for facet key values in left table
         getlkey = itemgetter(*asindices(lflds, lkey))
         # main loop
@@ -806,14 +805,11 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lkey,
             lkey = getlkey(lrow)
             start = getlstart(lrow)
             stop = getlstop(lrow)
-            
+
             try:
                 rrows = search[lkey](start, stop)
-            except KeyError:
+            except (KeyError, AttributeError):
                 rrows = None
-            except AttributeError:
-                rrows = None
-                
             if rrows:
                 if not anti:
                     for rrow in rrows:
@@ -919,7 +915,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lkey, rkey,
     # determine output fields
     outhdr = list(lflds)
     yield tuple(outhdr)
-    
+
     # create getters for start and stop positions
     lstartidx, lstopidx = asindices(lhdr, (lstart, lstop))
     getlcoords = itemgetter(lstartidx, lstopidx)
@@ -943,7 +939,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lkey, rkey,
                     out[lstartidx] = x
                     out[lstopidx] = y
                     yield tuple(out)
-                
+
     else:
         # build interval lookup for right table
         lookup = facetintervallookup(right, key=rkey, start=rstart, stop=rstop,
@@ -956,9 +952,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lkey, rkey,
             start, stop = getlcoords(lrow)
             try:
                 rrows = lookup[lkey].search(start, stop)
-            except KeyError:
-                rrows = None
-            except AttributeError:
+            except (KeyError, AttributeError):
                 rrows = None
             if not rrows:
                 yield tuple(lrow)
@@ -989,8 +983,7 @@ def collapsedintervals(table, start='start', stop='stop', key=None):
     
     if key is None:
         table = sort(table, key=start)
-        for iv in _collapse(values(table, (start, stop))):
-            yield iv
+        yield from _collapse(values(table, (start, stop)))
     else:
         table = sort(table, key=(key, start))
         for k, g in rowgroupby(table, key=key, value=(start, stop)):

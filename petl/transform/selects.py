@@ -494,10 +494,7 @@ def facet(table, key):
 
     """
 
-    fct = dict()
-    for v in set(values(table, key)):
-        fct[v] = selecteq(table, key, v)
-    return fct
+    return {v: selecteq(table, key, v) for v in set(values(table, key))}
 
 
 Table.facet = facet

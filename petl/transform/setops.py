@@ -137,8 +137,7 @@ def itercomplement(ta, tb, strict):
             b = next(itb)
         except StopIteration:
             yield a
-            for row in ita:
-                yield row
+            yield from ita
         else:
             # we want the elements in a that are not in b
             while True:

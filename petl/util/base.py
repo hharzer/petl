@@ -19,10 +19,7 @@ from petl.comparison import comparable_itemgetter
 class IterContainer(object):
 
     def __contains__(self, item):
-        for o in self:
-            if o == item:
-                return True
-        return False
+        return any(o == item for o in self)
 
     def __len__(self):
         return sum(1 for _ in self)
@@ -43,7 +40,7 @@ class IterContainer(object):
         for i, o in enumerate(self):
             if o == item:
                 return i
-        raise ValueError('%s is not in container' % item)
+        raise ValueError(f'{item} is not in container')
 
     def min(self, **kwargs):
         return min(self, **kwargs)
@@ -233,7 +230,7 @@ class ValuesView(IterContainer):
 
     def __repr__(self):
         vreprs = list(map(repr, islice(self, 6)))
-        r = text_type(self.field) + ': '
+        r = f'{text_type(self.field)}: '
         r += ', '.join(vreprs[:5])
         if len(vreprs) > 5:
             r += ', ...'
@@ -251,12 +248,11 @@ def itervalues(table, field, **kwargs):
     getvalue = operator.itemgetter(*indices)
     for row in it:
         try:
-            value = getvalue(row)
-            yield value
+            yield getvalue(row)
         except IndexError:
             if len(indices) > 1:
                 # try one at a time
-                value = list()
+                value = []
                 for i in indices:
                     if i < len(row):
                         value.append(row[i])
@@ -283,7 +279,7 @@ def asindices(hdr, spec):
     """Convert the given field `spec` into a list of field indices."""
 
     flds = list(map(text_type, hdr))
-    indices = list()
+    indices = []
     if not isinstance(spec, (list, tuple)):
         spec = (spec,)
     for s in spec:
@@ -302,8 +298,7 @@ def asindices(hdr, spec):
 
 def rowitemgetter(hdr, spec):
     indices = asindices(hdr, spec)
-    getter = comparable_itemgetter(*indices)
-    return getter
+    return comparable_itemgetter(*indices)
 
 
 def rowgetter(*indices):
@@ -459,7 +454,7 @@ def asdict(hdr, row, missing=None):
         items = [(flds[i], row[i]) for i in range(len(flds))]
     except IndexError:
         # short row, fall back to slower for loop
-        items = list()
+        items = []
         for i, f in enumerate(flds):
             try:
                 v = row[i]
@@ -549,8 +544,7 @@ def asnamedtuple(nt, row, missing=None):
 class Record(tuple):
 
     def __new__(cls, row, flds, missing=None):
-        t = super(Record, cls).__new__(cls, row)
-        return t
+        return super(Record, cls).__new__(cls, row)
 
     def __init__(self, row, flds, missing=None):
         self.flds = flds
@@ -562,22 +556,19 @@ class Record(tuple):
         elif f in self.flds:
             idx = self.flds.index(f)
         else:
-            raise KeyError('item ' + repr(f) +
-                                ' not in fields ' + repr(self.flds))
+            raise KeyError((f'item {repr(f)}' + ' not in fields ') + repr(self.flds))
         try:
             return super(Record, self).__getitem__(idx)
         except IndexError:  # handle short rows
             return self.missing
 
     def __getattr__(self, f):
-        if f in self.flds:
-            try:
-                return super(Record, self).__getitem__(self.flds.index(f))
-            except IndexError:  # handle short rows
-                return self.missing
-        else:
-            raise AttributeError('item ' + repr(f) +
-                                ' not in fields ' + repr(self.flds))
+        if f not in self.flds:
+            raise AttributeError((f'item {repr(f)}' + ' not in fields ') + repr(self.flds))
+        try:
+            return super(Record, self).__getitem__(self.flds.index(f))
+        except IndexError:  # handle short rows
+            return self.missing
 
     def get(self, key, default=None):
         try:
@@ -711,22 +702,17 @@ def rowgroupby(table, key, value=None):
 
     git = groupby(it, key=getkey)
     if value is None:
-        if native_key:
-            return git
-        else:
-            return ((k.inner, vals) for (k, vals) in git)
+        return git if native_key else ((k.inner, vals) for (k, vals) in git)
+    if callable(value):
+        getval = value
     else:
-        if callable(value):
-            getval = value
-        else:
-            vindices = asindices(hdr, value)
-            getval = operator.itemgetter(*vindices)
-        if native_key:
-            return ((k, (getval(v) for v in vals))
-                    for (k, vals) in git)
-        else:
-            return ((k.inner, (getval(v) for v in vals))
-                    for (k, vals) in git)
+        vindices = asindices(hdr, value)
+        getval = operator.itemgetter(*vindices)
+    return (
+        ((k, (getval(v) for v in vals)) for (k, vals) in git)
+        if native_key
+        else ((k.inner, (getval(v) for v in vals)) for (k, vals) in git)
+    )
 
 
 Table.rowgroupby = rowgroupby

@@ -196,18 +196,13 @@ def _look_grid(table, vrepr, index_header, truncate, width):
     # fields representation
     hdr = next(it)
     flds = list(map(text_type, hdr))
-    if index_header:
-        fldsrepr = ['%s|%s' % (i, r) for (i, r) in enumerate(flds)]
-    else:
-        fldsrepr = flds
-
+    fldsrepr = [f'{i}|{r}' for (i, r) in enumerate(flds)] if index_header else flds
     # rows representations
     rows = list(it)
     rowsrepr = [[vrepr(v) for v in row] for row in rows]
 
     # find maximum row length - may be uneven
-    rowlens = [len(hdr)]
-    rowlens.extend([len(row) for row in rows])
+    rowlens = [len(hdr), *[len(row) for row in rows]]
     maxrowlen = max(rowlens)
 
     # pad short fields and rows
@@ -254,7 +249,7 @@ def _look_grid(table, vrepr, index_header, truncate, width):
     fldsline = '|'
     for i, w in enumerate(colwidths):
         f = fldsrepr[i]
-        fldsline += ' ' + f
+        fldsline += f' {f}'
         fldsline += ' ' * (w - len(f))  # padding
         fldsline += ' |'
     if width:
@@ -262,7 +257,7 @@ def _look_grid(table, vrepr, index_header, truncate, width):
     fldsline += '\n'
 
     # construct a line for each data row
-    rowlines = list()
+    rowlines = []
     for vals, valsrepr in zip(rows, rowsrepr):
         rowline = '|'
         for i, w in enumerate(colwidths):
@@ -271,10 +266,10 @@ def _look_grid(table, vrepr, index_header, truncate, width):
                     and not isinstance(vals[i], bool):
                 # left pad numbers
                 rowline += ' ' * (w + 1 - len(vr))  # padding
-                rowline += vr + ' |'
+                rowline += f'{vr} |'
             else:
                 # right pad everything else
-                rowline += ' ' + vr
+                rowline += f' {vr}'
                 rowline += ' ' * (w - len(vr))  # padding
                 rowline += ' |'
         if width:
@@ -296,18 +291,13 @@ def _look_simple(table, vrepr, index_header, truncate, width):
     # fields representation
     hdr = next(it)
     flds = list(map(text_type, hdr))
-    if index_header:
-        fldsrepr = ['%s|%s' % (i, r) for (i, r) in enumerate(flds)]
-    else:
-        fldsrepr = flds
-
+    fldsrepr = [f'{i}|{r}' for (i, r) in enumerate(flds)] if index_header else flds
     # rows representations
     rows = list(it)
     rowsrepr = [[vrepr(v) for v in row] for row in rows]
 
     # find maximum row length - may be uneven
-    rowlens = [len(hdr)]
-    rowlens.extend([len(row) for row in rows])
+    rowlens = [len(hdr), *[len(row) for row in rows]]
     maxrowlen = max(rowlens)
 
     # pad short fields and rows
@@ -345,7 +335,7 @@ def _look_simple(table, vrepr, index_header, truncate, width):
     fldsline += '\n'
 
     # construct a line for each data row
-    rowlines = list()
+    rowlines = []
     for vals, valsrepr in zip(rows, rowsrepr):
         rowline = ''
         for i, w in enumerate(colwidths):
@@ -379,18 +369,13 @@ def _look_minimal(table, vrepr, index_header, truncate, width):
     # fields representation
     hdr = next(it)
     flds = list(map(text_type, hdr))
-    if index_header:
-        fldsrepr = ['%s|%s' % (i, r) for (i, r) in enumerate(flds)]
-    else:
-        fldsrepr = flds
-
+    fldsrepr = [f'{i}|{r}' for (i, r) in enumerate(flds)] if index_header else flds
     # rows representations
     rows = list(it)
     rowsrepr = [[vrepr(v) for v in row] for row in rows]
 
     # find maximum row length - may be uneven
-    rowlens = [len(hdr)]
-    rowlens.extend([len(row) for row in rows])
+    rowlens = [len(hdr), *[len(row) for row in rows]]
     maxrowlen = max(rowlens)
 
     # pad short fields and rows
@@ -422,7 +407,7 @@ def _look_minimal(table, vrepr, index_header, truncate, width):
     fldsline += '\n'
 
     # construct a line for each data row
-    rowlines = list()
+    rowlines = []
     for vals, valsrepr in zip(rows, rowsrepr):
         rowline = ''
         for i, w in enumerate(colwidths):
@@ -505,13 +490,9 @@ class See(object):
                     cols[str(f)].append('')
         for i, f in enumerate(flds):
             if index_header:
-                f = '%s|%s' % (i, f)
-            output += '%s: %s' % (f, ', '.join(cols[str(i)]))
-            if overflow:
-                output += '...\n'
-            else:
-                output += '\n'
-
+                f = f'{i}|{f}'
+            output += f"{f}: {', '.join(cols[str(i)])}"
+            output += '...\n' if overflow else '\n'
         return output
 
     __str__ = __repr__
@@ -554,7 +535,7 @@ def _display_html(table, limit=0, vrepr=None, index_header=None, caption=None,
     output = text_type(buf.getvalue(), encoding)
 
     if epilogue:
-        output += '<p>%s</p>' % epilogue
+        output += f'<p>{epilogue}</p>'
     elif overflow:
         output += '<p><strong>...</strong></p>'
 

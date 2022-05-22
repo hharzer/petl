@@ -203,7 +203,7 @@ def test_fromxml_url():
         import pkg_resources
         filename = pkg_resources.resource_filename('petl', 'test/resources/test.xml')
     except Exception as e:
-        pytest.skip('SKIP test_fromxml_url: %s' % e)
+        pytest.skip(f'SKIP test_fromxml_url: {e}')
     else:
         actual = fromxml(url, 'pydev_property', {'name': ( '.', 'name'), 'prop': '.'})
         assert nrows(actual) > 0
@@ -245,7 +245,7 @@ def _compare(expected, actual, out=None):
 
 
 def _write_test_file(data, pre='', pos=''):
-    content = pre + '<table>' + data + pos + '</table>'
+    content = f'{pre}<table>{data}{pos}</table>'
     return _write_temp_file(content)
 
 
@@ -315,13 +315,9 @@ def test_fromxml_entity():
 
     try:
         actual33 = fromxml(temp_file3, 'tr', 'td', parser=parser_onn)
-        for _ in actual33:
-            pass
     except etree.XMLSyntaxError:
         # print('XMLSyntaxError', ex, file=sys.stderr)
         pass
-    else:
-        assert True, 'Error testing XML'
 
 
 def _check_toxml(table, expected, check=(), dump=None, **kwargs):

@@ -63,7 +63,7 @@ class RenameView(Table):
     def __init__(self, table, *args, **kwargs):
         self.source = table
         if len(args) == 0:
-            self.spec = dict()
+            self.spec = {}
         elif len(args) == 1:
             self.spec = args[0]
         elif len(args) == 2:
@@ -309,10 +309,8 @@ class PrefixHeaderView(Table):
     def __iter__(self):
         it = iter(self.table)
         hdr = next(it)
-        outhdr = tuple((text_type(self.prefix) + text_type(f)) for f in hdr)
-        yield outhdr
-        for row in it:
-            yield row
+        yield tuple((text_type(self.prefix) + text_type(f)) for f in hdr)
+        yield from it
 
 
 def suffixheader(table, suffix):
@@ -333,10 +331,8 @@ class SuffixHeaderView(Table):
     def __iter__(self):
         it = iter(self.table)
         hdr = next(it)
-        outhdr = tuple((text_type(f) + text_type(self.suffix)) for f in hdr)
-        yield outhdr
-        for row in it:
-            yield row
+        yield tuple((text_type(f) + text_type(self.suffix)) for f in hdr)
+        yield from it
 
 
 def sortheader(table, reverse=False, missing=None):

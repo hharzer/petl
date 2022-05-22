@@ -87,13 +87,11 @@ def _placeholders(connection, names):
 
         elif mod.paramstyle == 'numeric':
             debug('found paramstyle numeric')
-            placeholders = ', '.join([':' + str(i + 1)
-                                      for i in range(len(names))])
+            placeholders = ', '.join([f':{str(i + 1)}' for i in range(len(names))])
 
         elif mod.paramstyle == 'named':
             debug('found paramstyle named')
-            placeholders = ', '.join([':%s' % name
-                                      for name in names])
+            placeholders = ', '.join([f':{name}' for name in names])
 
         else:
             debug('found unexpected paramstyle %r, defaulting to qmark',

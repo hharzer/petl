@@ -70,10 +70,7 @@ class FieldMapView(Table):
     def __init__(self, source, mappings=None, failonerror=None,
                  errorvalue=None):
         self.source = source
-        if mappings is None:
-            self.mappings = OrderedDict()
-        else:
-            self.mappings = mappings
+        self.mappings = OrderedDict() if mappings is None else mappings
         self.failonerror = (config.failonerror if failonerror is None
                                 else failonerror)
         self.errorvalue = errorvalue
@@ -93,7 +90,7 @@ def iterfieldmap(source, mappings, failonerror, errorvalue):
     outhdr = mappings.keys()
     yield tuple(outhdr)
 
-    mapfuns = dict()
+    mapfuns = {}
     for outfld, m in mappings.items():
         if m in hdr:
             mapfuns[outfld] = operator.itemgetter(m)
@@ -118,7 +115,7 @@ def iterfieldmap(source, mappings, failonerror, errorvalue):
     # wrap rows as records
     it = (Record(row, flds) for row in it)
     for row in it:
-        outrow = list()
+        outrow = []
         for outfld in outhdr:
             try:
                 val = mapfuns[outfld](row)
@@ -142,10 +139,7 @@ def composefun(f, srcfld):
 def composedict(d, srcfld):
     def g(rec):
         k = rec[srcfld]
-        if k in d:
-            return d[k]
-        else:
-            return k
+        return d[k] if k in d else k
     return g
 
 
@@ -224,7 +218,7 @@ def iterrowmap(source, rowmapper, header, failonerror):
             yield tuple(outrow)
         except Exception as e:
             if failonerror == 'inline':
-                yield tuple([e])
+                yield (e, )
             elif failonerror:
                 raise e
 
@@ -318,11 +312,9 @@ def iterrowmapmany(source, rowgenerator, header, failonerror):
                 yield tuple(outrow)
         except Exception as e:
             if failonerror == 'inline':
-                yield tuple([e])
+                yield (e, )
             elif failonerror:
                 raise e
-            else:
-                pass
 
 
 def rowgroupmap(table, key, mapper, header=None, presorted=False,
@@ -361,5 +353,4 @@ class RowGroupMapView(Table):
 def iterrowgroupmap(source, key, mapper, header):
     yield tuple(header)
     for key, rows in rowgroupby(source, key):
-        for row in mapper(key, rows):
-            yield row
+        yield from mapper(key, rows)

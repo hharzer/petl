@@ -110,7 +110,7 @@ else:
         try:
             _write_temp_avro_file(table1, nullable_schema)
         except ValueError as vex:
-            bob = "%s" % vex
+            bob = f"{vex}"
             assert 'Bob' in bob
             return
         assert False, 'Failed schema conversion'
@@ -121,7 +121,7 @@ else:
         try:
             _write_temp_avro_file(table0, schema1)
         except TypeError as tex:
-            joe = "%s" % tex
+            joe = f"{tex}"
             assert 'Joe' in joe
             return
         assert False, 'Failed schema conversion'

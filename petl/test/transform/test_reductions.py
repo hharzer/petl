@@ -44,7 +44,7 @@ def test_rowreduce_fieldnameaccess():
               ('c', 4))
     
     def sumbar(key, records):
-        return [key, sum([rec['bar'] for rec in records])]
+        return [key, sum(rec['bar'] for rec in records)]
         
     table2 = rowreduce(table1, key='foo', reducer=sumbar, 
                        header=['foo', 'barsum'])

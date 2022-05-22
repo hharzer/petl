@@ -65,7 +65,7 @@ def _get_gspread_client():
         else:
             gspread_client = gspread.service_account_from_dict(credentials)
     except gspread.exceptions.APIError as ex:
-        pytest.skip("SKIPPED. to/from gspread authentication error: %s" % ex)
+        pytest.skip(f"SKIPPED. to/from gspread authentication error: {ex}")
         return None
     return gspread_client
 
@@ -78,7 +78,7 @@ def _get_env_sharing_emails():
 
 
 def _get_gspread_test_params():
-    filename = "test-{}".format(str(uuid.uuid4()))
+    filename = f"test-{str(uuid.uuid4())}"
     gspread_client = _get_gspread_client()
     emails = _get_env_sharing_emails()
     return filename, gspread_client, emails
@@ -170,7 +170,7 @@ def test_tofromgsheet_03_empty_table():
 
 @found_gcp_credentials
 def test_tofromgsheet_04_cell_range():
-    test_table_f2 = [[x[1]] for x in TEST_TABLE[0:4]]
+    test_table_f2 = [[x[1]] for x in TEST_TABLE[:4]]
     _test_to_fromg_sheet(  TEST_TABLE[:], None, "B1:B4", test_table_f2 )
 
 

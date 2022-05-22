@@ -267,7 +267,7 @@ def test_addfield():
     ieq(expectation, result)
     ieq(expectation, result)
 
-    result = addfield(table, 'baz', lambda row: '%s,%s' % (row.foo, row.bar))
+    result = addfield(table, 'baz', lambda row: f'{row.foo},{row.bar}')
     expectation = (('foo', 'bar', 'baz'),
                    ('M', 12, 'M,12'),
                    ('F', 34, 'F,34'),
@@ -366,9 +366,15 @@ def test_addfields():
              ('F', 34),
              ('-', 56))
 
-    result = addfields(table, [('baz', 42),
-                               ('qux', lambda row: '%s,%s' % (row.foo, row.bar)),
-                               ('fiz', lambda rec: rec['bar'] * 2, 0)])
+    result = addfields(
+        table,
+        [
+            ('baz', 42),
+            ('qux', lambda row: f'{row.foo},{row.bar}'),
+            ('fiz', lambda rec: rec['bar'] * 2, 0),
+        ],
+    )
+
     expectation = (('fiz', 'foo', 'bar', 'baz', 'qux'),
                    (24, 'M', 12, 42, 'M,12'),
                    (68, 'F', 34, 42, 'F,34'),
@@ -670,16 +676,10 @@ def test_addfieldusingcontext():
               ('D', 9, 4, None))
 
     def upstream(prv, cur, nxt):
-        if prv is None:
-            return None
-        else:
-            return cur.bar - prv.bar
+        return None if prv is None else cur.bar - prv.bar
 
     def downstream(prv, cur, nxt):
-        if nxt is None:
-            return None
-        else:
-            return nxt.bar - cur.bar
+        return None if nxt is None else nxt.bar - cur.bar
 
     table2 = addfieldusingcontext(table1, 'baz', upstream)
     table3 = addfieldusingcontext(table2, 'quux', downstream)
@@ -701,10 +701,7 @@ def test_addfieldusingcontext_stateful():
               ('D', 9, 19, 19))
 
     def upstream(prv, cur, nxt):
-        if prv is None:
-            return cur.bar
-        else:
-            return cur.bar + prv.baz
+        return cur.bar if prv is None else cur.bar + prv.baz
 
     def downstream(prv, cur, nxt):
         if nxt is None:

@@ -12,8 +12,7 @@ from petl.util.base import Table
 def getcodec(encoding):
     if encoding is None:
         encoding = locale.getpreferredencoding()
-    codec = codecs.lookup(encoding)
-    return codec
+    return codecs.lookup(encoding)
 
 
 def fromcolumns(cols, header=None, missing=None):
@@ -71,7 +70,6 @@ class ColumnsView(Table):
 
 def itercolumns(cols, header, missing):
     if header is None:
-        header = ['f%s' % i for i in range(len(cols))]
+        header = [f'f{i}' for i in range(len(cols))]
     yield tuple(header)
-    for row in izip_longest(*cols, **dict(fillvalue=missing)):
-        yield row
+    yield from izip_longest(*cols, **dict(fillvalue=missing))

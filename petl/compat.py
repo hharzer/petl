@@ -12,10 +12,10 @@ import sys
 PY2 = sys.version_info.major == 2
 PY3 = sys.version_info.major == 3
 
+from decimal import Decimal
 if PY2:
     from itertools import ifilter, ifilterfalse, imap, izip, izip_longest
     from string import maketrans
-    from decimal import Decimal
     string_types = basestring,
     integer_types = int, long
     numeric_types = bool, int, long, float, Decimal
@@ -41,7 +41,6 @@ else:
     imap = map
     izip = zip
     xrange = range
-    from decimal import Decimal
     from itertools import filterfalse as ifilterfalse
     from itertools import zip_longest as izip_longest
     from functools import reduce

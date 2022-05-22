@@ -77,14 +77,17 @@ class RemoteSource(object):
 
     def open_file(self, mode="rb"):
         import fsspec
-        # auto_mkdir=True can fail in some filesystems or without permission for full path
-        # E.g: s3fs tries to create a bucket when writing into a folder does not exists
-        fs = fsspec.open(self.url, mode=mode, compression='infer', auto_mkdir=False, **self.kwargs)
-        return fs
+        return fsspec.open(
+            self.url,
+            mode=mode,
+            compression='infer',
+            auto_mkdir=False,
+            **self.kwargs
+        )
 
     @contextmanager
     def open(self, mode="rb"):
-        mode2 = mode[:1] + r"b"  # python2
+        mode2 = f"{mode[:1]}b"
         fs = self.open_file(mode=mode2)
         with fs as source:
             yield source
@@ -192,7 +195,7 @@ class SMBSource(object):
 
     @contextmanager
     def open(self, mode="rb"):
-        mode2 = mode[:1] + r"b"  # python2
+        mode2 = f"{mode[:1]}b"
         source = _open_file_smbprotocol(self.url, mode=mode2, **self.kwargs)
         try:
             yield source
@@ -212,12 +215,11 @@ def _open_file_smbprotocol(url, mode="rb", **kwargs):
                 host, username=user, password=passwd, port=port
             )
         # Read an existing file as bytes
-        mode2 = mode[:1] + r"b"
-        filehandle = smbclient.open_file(server_path, mode=mode2, **kwargs)
-        return filehandle
+        mode2 = f"{mode[:1]}b"
+        return smbclient.open_file(server_path, mode=mode2, **kwargs)
 
     except Exception as ex:
-        raise ConnectionError("SMB error: %s" % ex).with_traceback(sys.exc_info()[2])
+        raise ConnectionError(f"SMB error: {ex}").with_traceback(sys.exc_info()[2])
 
 
 def _parse_smb_url(url):
@@ -237,7 +239,7 @@ def _parse_smb_url(url):
         raise ValueError(e + url)
 
     unc_path = parsed.path.replace("/", "\\")
-    server_path = "\\\\{}{}".format(parsed.hostname, unc_path)
+    server_path = f"\\\\{parsed.hostname}{unc_path}"
 
     if not parsed.username:
         domain = None
@@ -246,7 +248,7 @@ def _parse_smb_url(url):
         domain, username = parsed.username.split(";")
     else:
         domain, username = None, parsed.username
-    port = 445 if not parsed.port else int(parsed.port)
+    port = int(parsed.port) if parsed.port else 445
     return domain, parsed.hostname, port, username, parsed.password, server_path
 
 

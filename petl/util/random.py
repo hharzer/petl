@@ -51,10 +51,7 @@ class RandomTable(Table):
         self.numflds = numflds
         self.numrows = numrows
         self.wait = wait
-        if seed is None:
-            self.seed = datetime.datetime.now()
-        else:
-            self.seed = seed
+        self.seed = datetime.datetime.now() if seed is None else seed
 
     def __iter__(self):
 
@@ -66,7 +63,7 @@ class RandomTable(Table):
         random.seed(seed)
 
         # construct fields
-        flds = ['f%s' % n for n in range(nf)]
+        flds = [f'f{n}' for n in range(nf)]
         yield tuple(flds)
 
         # construct data rows
@@ -74,7 +71,7 @@ class RandomTable(Table):
             # artificial delay
             if self.wait:
                 time.sleep(self.wait)
-            yield tuple(random.random() for n in range(nf))
+            yield tuple(random.random() for _ in range(nf))
 
     def reseed(self):
         self.seed = datetime.datetime.now()
@@ -149,14 +146,8 @@ class DummyTable(Table):
     def __init__(self, numrows=100, fields=None, wait=0, seed=None):
         self.numrows = numrows
         self.wait = wait
-        if fields is None:
-            self.fields = OrderedDict()
-        else:
-            self.fields = OrderedDict(fields)
-        if seed is None:
-            self.seed = datetime.datetime.now()
-        else:
-            self.seed = seed
+        self.fields = OrderedDict() if fields is None else OrderedDict(fields)
+        self.seed = datetime.datetime.now() if seed is None else seed
 
     def __setitem__(self, item, value):
         self.fields[text_type(item)] = value
@@ -169,10 +160,7 @@ class DummyTable(Table):
         # N.B., we want this to be stable, i.e., same data each time
         random.seed(seed)
 
-        # construct header row
-        hdr = tuple(text_type(f) for f in fields.keys())
-        yield hdr
-
+        yield tuple(text_type(f) for f in fields.keys())
         # construct data rows
         for _ in xrange(nr):
             # artificial delay

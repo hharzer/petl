@@ -207,8 +207,8 @@ class XmlView(Table):
                 yield flds
 
                 # setup value getters
-                vmatches = dict()
-                vgetters = dict()
+                vmatches = {}
+                vgetters = {}
                 for f in flds:
                     vmatch = self.vdict[f]
                     if isinstance(vmatch, string_types):
@@ -391,8 +391,7 @@ def _build_xml_header(style, props, root, head, rows, prologue, encoding):
     xml = '<?xml version="1.0" encoding="%s"?>' % enc
     pre = prologue + '\n' if prologue and not root else ''
     pos = '\n' + prologue if prologue and root else ''
-    res = '{0}\n{1}{2}{3}{4}{5}\n'.format(xml, pre, tab, thd, tbd, pos)
-    return res
+    return '{0}\n{1}{2}{3}{4}{5}\n'.format(xml, pre, tab, thd, tbd, pos)
 
 
 def _build_xml_footer(style, epilogue, rows, root):
@@ -411,7 +410,7 @@ def _build_nesting(path, closing, index):
     if '/' not in path:
         return fmt % path
     parts = path.split('/')
-    elements = parts[0:index] if index else parts
+    elements = parts[:index] if index else parts
     if closing:
         elements.reverse()
     tags = [fmt % e for e in elements]
@@ -443,8 +442,7 @@ def _build_cols_inline(props, path, is_value, use_tag):
     fmt = '<{0}>{1}</{0}>'.format(col, fld)
     cols = [fmt.format(e) for e in props]
     tags = ''.join(cols)
-    res = ' <{0}>{1}</{0}>\n'.format(row, tags)
-    return res
+    return ' <{0}>{1}</{0}>\n'.format(row, tags)
 
 
 def _build_cols_attribs(props, path):
@@ -453,5 +451,4 @@ def _build_cols_attribs(props, path):
     fmt = '{0}="{{{0}}}"'
     cols = [fmt.format(e) for e in props]
     atts = ' '.join(cols)
-    res = ' <{0} {1} />\n'.format(row, atts)
-    return res
+    return ' <{0} {1} />\n'.format(row, atts)

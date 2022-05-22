@@ -34,7 +34,7 @@ def _test_create(dbo):
     try:
         debug(look(actual))
     except Exception as e:
-        debug('expected exception: ' + str(e))
+        debug(f'expected exception: {str(e)}')
     else:
         raise Exception('expected exception not raised')
 
@@ -42,7 +42,7 @@ def _test_create(dbo):
     try:
         todb(expect, dbo, 'test_create')
     except Exception as e:
-        debug('expected exception: ' + str(e))
+        debug(f'expected exception: {str(e)}')
     else:
         raise Exception('expected exception not raised')
 
@@ -55,7 +55,7 @@ def _test_create(dbo):
     try:
         todb(expect_extended, dbo, 'test_create')
     except Exception as e:
-        debug('expected exception: ' + str(e))
+        debug(f'expected exception: {str(e)}')
     else:
         raise Exception('expected exception not raised')
 
@@ -167,8 +167,10 @@ finally:
         # exercise sqlalchemy dbapi_connection
         _setup_mysql(dbapi_connection)
         from sqlalchemy import create_engine
-        sqlalchemy_engine = create_engine('mysql+pymysql://%s:%s@%s/%s'
-                                          % (user, password, host, database))
+        sqlalchemy_engine = create_engine(
+            f'mysql+pymysql://{user}:{password}@{host}/{database}'
+        )
+
         sqlalchemy_connection = sqlalchemy_engine.connect()
         sqlalchemy_connection.execute('SET SQL_MODE=ANSI_QUOTES')
         _test_create(sqlalchemy_connection)
@@ -203,9 +205,9 @@ finally:
 
         # assume database already created
         dbapi_connection = psycopg2.connect(
-            'host=%s dbname=%s user=%s password=%s'
-            % (host, database, user, password)
+            f'host={host} dbname={database} user={user} password={password}'
         )
+
         dbapi_connection.autocommit = True
 
         # exercise using a dbapi_connection

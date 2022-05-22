@@ -63,7 +63,7 @@ def columns(table, missing=None):
     hdr = next(it)
     flds = list(map(text_type, hdr))
     for f in flds:
-        cols[f] = list()
+        cols[f] = []
     for row in it:
         for f, v in izip_longest(flds, row, fillvalue=missing):
             if f in cols:
@@ -92,7 +92,7 @@ def facetcolumns(table, key, missing=None):
 
     """
 
-    fct = dict()
+    fct = {}
     it = iter(table)
     hdr = next(it)
     flds = list(map(text_type, hdr))
@@ -103,9 +103,7 @@ def facetcolumns(table, key, missing=None):
     for row in it:
         kv = getkey(row)
         if kv not in fct:
-            cols = dict()
-            for f in flds:
-                cols[f] = list()
+            cols = {f: [] for f in flds}
             fct[kv] = cols
         else:
             cols = fct[kv]
@@ -137,19 +135,17 @@ class CacheView(Table):
     def __init__(self, inner, n=None):
         self.inner = inner
         self.n = n
-        self.cache = list()
+        self.cache = []
         self.cachecomplete = False
 
     def clearcache(self):
-        self.cache = list()
+        self.cache = []
         self.cachecomplete = False
 
     def __iter__(self):
 
         # serve whatever is in the cache first
-        for row in self.cache:
-            yield row
-
+        yield from self.cache
         if not self.cachecomplete:
 
             # serve the remainder from the inner iterator

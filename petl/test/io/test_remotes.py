@@ -30,7 +30,7 @@ def test_helper_fsspec():
         # pylint: disable=unused-import
         import fsspec  # noqa: F401
     except ImportError as e:
-        pytest.skip("SKIP FSSPEC helper tests: %s" % e)
+        pytest.skip(f"SKIP FSSPEC helper tests: {e}")
     else:
         _write_read_from_env_matching("PETL_TEST_")
 
@@ -40,7 +40,7 @@ def test_helper_smb():
         # pylint: disable=unused-import
         import smbclient  # noqa: F401
     except ImportError as e:
-        pytest.skip("SKIP SMB helper tests: %s" % e)
+        pytest.skip(f"SKIP SMB helper tests: {e}")
     else:
         _write_read_from_env_url("PETL_SMB_URL")
 
@@ -113,18 +113,14 @@ def _build_source_url_from(base_url, filename, compression=None):
     if compression is not None:
         if is_local:
             return None
-        filename = filename + "." + compression
+        filename = f"{filename}.{compression}"
         import fsspec
         codec = fsspec.utils.infer_compression(filename)
         if codec is None:
             print("\n    - %s SKIPPED " % filename, file=sys.stderr, end="")
             return None
     print("\n    - %s " % filename, file=sys.stderr, end="")
-    if is_local:
-        source_url = base_url + filename
-    else:
-        source_url = os.path.join(base_url, filename)
-    return source_url
+    return base_url + filename if is_local else os.path.join(base_url, filename)
 
 
 def _write_read_file_into_url(base_url, filename, compression=None, pkg=None):

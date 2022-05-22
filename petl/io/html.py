@@ -192,37 +192,35 @@ class TeeHTMLView(Table):
 def _write_begin(f, flds, lineterminator, caption, index_header, truncate):
     f.write("<table class='petl'>" + lineterminator)
     if caption is not None:
-        f.write(('<caption>%s</caption>' % caption) + lineterminator)
-    f.write('<thead>' + lineterminator)
-    f.write('<tr>' + lineterminator)
+        f.write(f'<caption>{caption}</caption>' + lineterminator)
+    f.write(f'<thead>{lineterminator}')
+    f.write(f'<tr>{lineterminator}')
     for i, h in enumerate(flds):
         if index_header:
-            h = '%s|%s' % (i, h)
+            h = f'{i}|{h}'
         if truncate:
             h = h[:truncate]
-        f.write(('<th>%s</th>' % h) + lineterminator)
-    f.write('</tr>' + lineterminator)
-    f.write('</thead>' + lineterminator)
-    f.write('<tbody>' + lineterminator)
+        f.write(f'<th>{h}</th>' + lineterminator)
+    f.write(f'</tr>{lineterminator}')
+    f.write(f'</thead>{lineterminator}')
+    f.write(f'<tbody>{lineterminator}')
 
 
 def _write_row(f, flds, row, lineterminator, vrepr, tr_style, td_styles,
                truncate):
-    tr_css = _get_tr_css(row, tr_style)
-    if tr_css:
+    if tr_css := _get_tr_css(row, tr_style):
         f.write(("<tr style='%s'>" % tr_css) + lineterminator)
     else:
-        f.write("<tr>" + lineterminator)
+        f.write(f"<tr>{lineterminator}")
     for h, v in izip_longest(flds, row, fillvalue=None):
         r = vrepr(v)
         if truncate:
             r = r[:truncate]
-        td_css = _get_td_css(h, v, td_styles)
-        if td_css:
+        if td_css := _get_td_css(h, v, td_styles):
             f.write(("<td style='%s'>%s</td>" % (td_css, r)) + lineterminator)
         else:
-            f.write(("<td>%s</td>" % r) + lineterminator)
-    f.write('</tr>' + lineterminator)
+            f.write(f"<td>{r}</td>" + lineterminator)
+    f.write(f'</tr>{lineterminator}')
 
 
 def _get_tr_css(row, tr_style):
@@ -267,5 +265,5 @@ def _get_td_css(h, v, td_styles):
 
 
 def _write_end(f, lineterminator):
-    f.write('</tbody>' + lineterminator)
-    f.write('</table>' + lineterminator)
+    f.write(f'</tbody>{lineterminator}')
+    f.write(f'</table>{lineterminator}')

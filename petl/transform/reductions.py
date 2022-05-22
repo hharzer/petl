@@ -339,9 +339,7 @@ def itermultiaggregate(source, key, aggregation):
             aggregation[outfld] = agg[0], list  # list is default
         elif len(agg) == 1 and callable(agg[0]):
             aggregation[outfld] = None, agg[0]  # aggregate whole rows
-        elif len(agg) == 2:
-            pass  # no need to normalise
-        else:
+        elif len(agg) != 2:
             raise ArgumentError('invalid aggregation: %r, %r' % (outfld, agg))
 
     # determine output header
@@ -376,19 +374,17 @@ def itermultiaggregate(source, key, aggregation):
             srcfld, aggfun = aggregation[outfld]
             if srcfld is None:
                 aggval = aggfun(rows)
-                outrow.append(aggval)
             elif isinstance(srcfld, (list, tuple)):
                 idxs = [hdr.index(f) for f in srcfld]
                 valgetter = operator.itemgetter(*idxs)
                 vals = (valgetter(row) for row in rows)
                 aggval = aggfun(vals)
-                outrow.append(aggval)
             else:
                 idx = hdr.index(srcfld)
                 # try using generator comprehension
                 vals = (row[idx] for row in rows)
                 aggval = aggfun(vals)
-                outrow.append(aggval)
+            outrow.append(aggval)
         yield tuple(outrow)
 
 
@@ -398,8 +394,7 @@ def groupcountdistinctvalues(table, key, value):
     
     s1 = cut(table, key, value)
     s2 = distinct(s1)
-    s3 = aggregate(s2, key, len)
-    return s3
+    return aggregate(s2, key, len)
 
 
 Table.groupcountdistinctvalues = groupcountdistinctvalues
@@ -599,13 +594,12 @@ def itermergeduplicates(table, key, missing):
     # do the work
     for k, grp in rowgroupby(it, key):
         grp = list(grp)
-        if isinstance(key, string_types):
-            outrow = [k]
-        else:
-            outrow = list(k)
-        mergedvals = [set(row[i] for row in grp
-                          if len(row) > i and row[i] != missing)
-                      for i in valfldidxs]
+        outrow = [k] if isinstance(key, string_types) else list(k)
+        mergedvals = [
+            {row[i] for row in grp if len(row) > i and row[i] != missing}
+            for i in valfldidxs
+        ]
+
         normedvals = [vals.pop() if len(vals) == 1
                       else missing if len(vals) == 0
                       else Conflict(vals)
@@ -650,8 +644,7 @@ def merge(*tables, **kwargs):
     assert 'key' in kwargs, 'keyword argument "key" is required'
     key = kwargs['key']
     t1 = mergesort(*tables, **kwargs)
-    t2 = mergeduplicates(t1, key=key, presorted=True)
-    return t2
+    return mergeduplicates(t1, key=key, presorted=True)
 
 
 Table.merge = merge
@@ -660,8 +653,7 @@ Table.merge = merge
 class Conflict(frozenset):
 
     def __new__(cls, items):
-        s = super(Conflict, cls).__new__(cls, items)
-        return s
+        return super(Conflict, cls).__new__(cls, items)
 
 
 def fold(table, key, f, value=None, presorted=False, buffersize=None,

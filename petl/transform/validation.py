@@ -108,9 +108,7 @@ def normalize_constraints(constraints, flds):
 
 def iterproblems(table, constraints, expected_header):
 
-    outhdr = ('name', 'row', 'field', 'value', 'error')
-    yield outhdr
-
+    yield ('name', 'row', 'field', 'value', 'error')
     it = iter(table)
     actual_header = next(it)
 
@@ -129,12 +127,11 @@ def iterproblems(table, constraints, expected_header):
 
     # setup getters
     for constraint in local_constraints:
-        if 'getter' not in constraint:
-            if 'field' in constraint:
-                # should ensure FieldSelectionError if bad field in constraint
-                indices = asindices(flds, constraint['field'])
-                getter = operator.itemgetter(*indices)
-                constraint['getter'] = getter
+        if 'getter' not in constraint and 'field' in constraint:
+            # should ensure FieldSelectionError if bad field in constraint
+            indices = asindices(flds, constraint['field'])
+            getter = operator.itemgetter(*indices)
+            constraint['getter'] = getter
 
     # generate problems
     expected_len = len(flds)

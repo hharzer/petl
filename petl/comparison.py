@@ -70,7 +70,7 @@ class Comparable(object):
         return self < other or self == other
 
     def __gt__(self, other):
-        return not (self < other or self == other)
+        return self >= other and self != other
 
     def __ge__(self, other):
         return not (self < other)
@@ -82,7 +82,7 @@ class Comparable(object):
         return text_type(self.obj)
 
     def __repr__(self):
-        return 'Comparable(' + repr(self.obj) + ')'
+        return f'Comparable({repr(self.obj)})'
 
     def __iter__(self, *args, **kwargs):
         return iter(self.obj, *args, **kwargs)

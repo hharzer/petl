@@ -360,16 +360,13 @@ def itercat(sources, missing, header):
 
         # now construct and yield the data rows
         for row in it:
-            outrow = list()
+            outrow = []
             for h in outhdr:
                 val = missing
                 try:
                     val = row[hdr.index(h)]
-                except IndexError:
+                except (IndexError, ValueError):
                     # short row
-                    pass
-                except ValueError:
-                    # field not in table
                     pass
                 outrow.append(val)
             yield tuple(outrow)
@@ -716,10 +713,7 @@ class RowSliceView(Table):
 
     def __init__(self, source, *sliceargs):
         self.source = source
-        if not sliceargs:
-            self.sliceargs = (None,)
-        else:
-            self.sliceargs = sliceargs
+        self.sliceargs = sliceargs or (None, )
 
     def __iter__(self):
         return iterrowslice(self.source, self.sliceargs)
@@ -978,16 +972,15 @@ class AnnexView(Table):
 def iterannex(tables, missing):
     its = [iter(t) for t in tables]
     hdrs = [next(it) for it in its]
-    outhdr = tuple(chain(*hdrs))
-    yield outhdr
+    yield tuple(chain(*hdrs))
     for rows in izip_longest(*its):
-        outrow = list()
+        outrow = []
         for i, row in enumerate(rows):
-            lh = len(hdrs[i])
             if row is None:  # handle uneven length tables
                 row = [missing] * len(hdrs[i])
             else:
                 lr = len(row)
+                lh = len(hdrs[i])
                 if lr < lh:  # handle short rows
                     row = list(row)
                     row.extend([missing] * (lh-lr))

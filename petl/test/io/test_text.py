@@ -104,7 +104,7 @@ def test_fromtext_gz():
     # initial data
     f = NamedTemporaryFile(delete=False)
     f.close()
-    fn = f.name + '.gz'
+    fn = f'{f.name}.gz'
     os.rename(f.name, fn)
     f = gzip.open(fn, 'wb')
     try:
@@ -134,7 +134,7 @@ def test_totext_gz():
              ('c', 2))
     f = NamedTemporaryFile(delete=False)
     f.close()
-    fn = f.name + '.gz'
+    fn = f'{f.name}.gz'
     os.rename(f.name, fn)
     prologue = (
         "{| class='wikitable'\n"
