@@ -21,11 +21,11 @@ options, args = parser.parse_args()
 try:
     (expression,) = args
 except ValueError:
-    parser.error("invalid number of arguments (%s)" % len(args))
+    parser.error(f"invalid number of arguments ({len(args)})")
 r = eval(expression)
 
 if r is not None:
     if isinstance(r, Table):
         print(look(r))
     else:
-        print(str(r))
+        print(r)

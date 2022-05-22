@@ -10,7 +10,7 @@ GET_ENV_PREFIX = "PETL_TEST_HELPER_ENVVAR_"
 
 def _testcase_get_env_vars_named(num_vals, prefix=""):
     res = {}
-    for i in range(1, num_vals, 1):
+    for i in range(1, num_vals):
         reskey = prefix + str(i)
         res[reskey] = str(i)
     return res

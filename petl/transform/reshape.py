@@ -280,10 +280,7 @@ class RecastView(Table):
         self.variablefield = variablefield
         self.valuefield = valuefield
         self.samplesize = samplesize
-        if reducers is None:
-            self.reducers = dict()
-        else:
-            self.reducers = reducers
+        self.reducers = dict() if reducers is None else reducers
         self.missing = missing
 
     def __iter__(self):
@@ -329,14 +326,14 @@ def iterrecast(source, key, variablefield, valuefield,
                           if f not in keyfields and f != valuefield]
 
     # sanity checks
-    assert valuefield in flds, 'invalid value field: %s' % valuefield
+    assert valuefield in flds, f'invalid value field: {valuefield}'
     assert valuefield not in keyfields, 'value field cannot be keyfields'
     assert valuefield not in variablefields, \
         'value field cannot be variable field'
     for f in keyfields:
-        assert f in flds, 'invalid keyfields field: %s' % f
+        assert f in flds, f'invalid keyfields field: {f}'
     for f in variablefields:
-        assert f in flds, 'invalid variable field: %s' % f
+        assert f in flds, f'invalid variable field: {f}'
 
     # we'll need these later
     valueindex = flds.index(valuefield)
@@ -380,23 +377,17 @@ def iterrecast(source, key, variablefield, valuefield,
         # N.B., key returned by groupby may be wrapped as SortableItem, we want
         # to output the actual key value, get it from the first row in the group
         key_value = getactualkey(group[0])
-        if len(keyfields) > 1:
-            out_row = list(key_value)
-        else:
-            out_row = [key_value]
+        out_row = list(key_value) if len(keyfields) > 1 else [key_value]
         for f, i in zip(variablefields, variableindices):
             for variable in variables[f]:
                 # collect all values for the current variable
                 vals = [r[valueindex] for r in group if r[i] == variable]
-                if len(vals) == 0:
+                if not vals:
                     val = missing
                 elif len(vals) == 1:
                     val = vals[0]
                 else:
-                    if variable in reducers:
-                        redu = reducers[variable]
-                    else:
-                        redu = list  # list all values
+                    redu = reducers[variable] if variable in reducers else list
                     val = redu(vals)
                 out_row.append(val)
         yield tuple(out_row)
@@ -530,10 +521,8 @@ def iterpivot(source, f1, f2, f3, aggfun, missing):
 
     # first pass - collect fields
     f2vals = set(itervalues(source, f2))  # TODO only make one pass
-    f2vals = list(f2vals)
-    f2vals.sort()
-    outhdr = [f1]
-    outhdr.extend(f2vals)
+    f2vals = sorted(f2vals)
+    outhdr = [f1, *f2vals]
     yield tuple(outhdr)
 
     # second pass - generate output
@@ -582,8 +571,7 @@ class FlattenView(Table):
 
     def __iter__(self):
         for row in data(self.table):
-            for value in row:
-                yield value
+            yield from row
 
 
 def unflatten(*args, **kwargs):
@@ -661,12 +649,9 @@ class UnflattenView(Table):
         period = self.period
         missing = self.missing
 
-        # generate header row
-        outhdr = tuple('f%s' % i for i in range(period))
-        yield outhdr
-
+        yield tuple(f'f{i}' for i in range(period))
         # generate data rows
-        row = list()
+        row = []
         for v in inpt:
             if len(row) < period:
                 row.append(v)

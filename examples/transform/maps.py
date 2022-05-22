@@ -39,10 +39,12 @@ table1 = [['id', 'sex', 'age', 'height', 'weight'],
           [5, '-', 25, 1.65, 51.9]]
 def rowmapper(row):
     transmf = {'male': 'M', 'female': 'F'}
-    return [row[0],
-            transmf[row['sex']] if row['sex'] in transmf else None,
-            row.age * 12,
-            row.height / row.weight ** 2]
+    return [
+        row[0],
+        transmf.get(row['sex'], None),
+        row.age * 12,
+        row.height / row.weight**2,
+    ]
 
 table2 = etl.rowmap(table1, rowmapper,
                     fields=['subject_id', 'gender', 'age_months', 'bmi'])
@@ -60,8 +62,7 @@ table1 = [['id', 'sex', 'age', 'height', 'weight'],
           [4, 'male', 21, 1.33]]
 def rowgenerator(row):
     transmf = {'male': 'M', 'female': 'F'}
-    yield [row[0], 'gender',
-           transmf[row['sex']] if row['sex'] in transmf else None]
+    yield [row[0], 'gender', transmf.get(row['sex'], None)]
     yield [row[0], 'age_months', row.age * 12]
     yield [row[0], 'bmi', row.height / row.weight ** 2]
 

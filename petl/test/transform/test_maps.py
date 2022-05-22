@@ -111,10 +111,7 @@ def test_rowmap():
 
     def rowmapper(row):
         transmf = {'male': 'M', 'female': 'F'}
-        return [row[0],
-                transmf[row[1]] if row[1] in transmf else row[1],
-                row[2] * 12,
-                row[4] / row[3] ** 2]
+        return [row[0], transmf.get(row[1], row[1]), row[2] * 12, row[4] / row[3] ** 2]
 
     actual = rowmap(table, rowmapper, header=['subject_id', 'gender',
                                               'age_months', 'bmi'])
@@ -149,10 +146,7 @@ def test_rowmap_empty():
 
     def rowmapper(row):
         transmf = {'male': 'M', 'female': 'F'}
-        return [row[0],
-                transmf[row[1]] if row[1] in transmf else row[1],
-                row[2] * 12,
-                row[4] / row[3] ** 2]
+        return [row[0], transmf.get(row[1], row[1]), row[2] * 12, row[4] / row[3] ** 2]
 
     actual = rowmap(table, rowmapper, header=['subject_id', 'gender',
                                               'age_months', 'bmi'])
@@ -181,10 +175,12 @@ def test_recordmap():
 
     def recmapper(rec):
         transmf = {'male': 'M', 'female': 'F'}
-        return [rec['id'],
-                transmf[rec['sex']] if rec['sex'] in transmf else rec['sex'],
-                rec['age'] * 12,
-                rec['weight'] / rec['height'] ** 2]
+        return [
+            rec['id'],
+            transmf.get(rec['sex'], rec['sex']),
+            rec['age'] * 12,
+            rec['weight'] / rec['height'] ** 2,
+        ]
 
     actual = rowmap(table, recmapper, header=['subject_id', 'gender',
                                               'age_months', 'bmi'])
@@ -223,8 +219,7 @@ def test_rowmapmany():
 
     def rowgenerator(row):
         transmf = {'male': 'M', 'female': 'F'}
-        yield [row[0], 'gender',
-               transmf[row[1]] if row[1] in transmf else row[1]]
+        yield [row[0], 'gender', transmf.get(row[1], row[1])]
         yield [row[0], 'age_months', row[2] * 12]
         yield [row[0], 'bmi', row[4] / row[3] ** 2]
 
@@ -265,8 +260,7 @@ def test_recordmapmany():
 
     def rowgenerator(rec):
         transmf = {'male': 'M', 'female': 'F'}
-        yield [rec['id'], 'gender',
-               transmf[rec['sex']] if rec['sex'] in transmf else rec['sex']]
+        yield [rec['id'], 'gender', transmf.get(rec['sex'], rec['sex'])]
         yield [rec['id'], 'age_months', rec['age'] * 12]
         yield [rec['id'], 'bmi', rec['weight'] / rec['height'] ** 2]
 

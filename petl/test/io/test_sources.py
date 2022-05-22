@@ -106,7 +106,7 @@ def test_gzipsource():
 
     # setup
     tbl = [('foo', 'bar'), ('a', '1'), ('b', '2')]
-    fn = NamedTemporaryFile().name + '.gz'
+    fn = f'{NamedTemporaryFile().name}.gz'
     expect = b"foo,bar\na,1\nb,2\n"
 
     # write explicit
@@ -130,7 +130,7 @@ def test_bzip2source():
 
     # setup
     tbl = [('foo', 'bar'), ('a', '1'), ('b', '2')]
-    fn = NamedTemporaryFile().name + '.bz2'
+    fn = f'{NamedTemporaryFile().name}.bz2'
     expect = b"foo,bar\na,1\nb,2\n"
 
     # write explicit

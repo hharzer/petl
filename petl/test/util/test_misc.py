@@ -16,10 +16,7 @@ def test_typeset():
              (b'E', 42))
 
     actual = typeset(table, 'foo')
-    if PY2:
-        expect = {'str', 'unicode'}
-    else:
-        expect = {'bytes', 'str'}
+    expect = {'str', 'unicode'} if PY2 else {'bytes', 'str'}
     eq_(expect, actual)
 
 

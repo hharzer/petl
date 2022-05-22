@@ -28,7 +28,7 @@ def construct_dtype(flds, peek, dtype):
     elif isinstance(dtype, string_types):
         # insert field names from source table
         typestrings = [s.strip() for s in dtype.split(',')]
-        dtype = [(f, t) for f, t in zip(flds, typestrings)]
+        dtype = list(zip(flds, typestrings))
 
     elif (isinstance(dtype, dict) and
           ('names' not in dtype or 'formats' not in dtype)):
@@ -91,9 +91,7 @@ def toarray(table, dtype=None, count=-1, sample=1000):
 
     # numpy is fussy about having tuples, need to make sure
     it = (tuple(row) for row in it)
-    sa = np.fromiter(it, dtype=dtype, count=count)
-
-    return sa
+    return np.fromiter(it, dtype=dtype, count=count)
 
 
 Table.toarray = toarray
@@ -175,8 +173,7 @@ def valuestoarray(vals, dtype=None, count=-1, sample=1000):
     if dtype is None:
         peek, it = iterpeek(it, sample)
         dtype = np.array(peek).dtype
-    a = np.fromiter(it, dtype=dtype, count=count)
-    return a
+    return np.fromiter(it, dtype=dtype, count=count)
 
 
 ValuesView.toarray = valuestoarray

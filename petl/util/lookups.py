@@ -82,7 +82,7 @@ def lookup(table, key, value=None, dictionary=None):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     # setup
     it, getkey, getvalue = _setup_lookup(table, key, value)
@@ -159,7 +159,7 @@ def lookupone(table, key, value=None, dictionary=None, strict=False):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     # setup
     it, getkey, getvalue = _setup_lookup(table, key, value)
@@ -222,7 +222,7 @@ def dictlookup(table, key, dictionary=None):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     it = iter(table)
     hdr = next(it)
@@ -300,7 +300,7 @@ def dictlookupone(table, key, dictionary=None, strict=False):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     it = iter(table)
     hdr = next(it)
@@ -328,7 +328,7 @@ def recordlookup(table, key, dictionary=None):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     it = iter(table)
     hdr = next(it)
@@ -360,7 +360,7 @@ def recordlookupone(table, key, dictionary=None, strict=False):
     """
 
     if dictionary is None:
-        dictionary = dict()
+        dictionary = {}
 
     it = iter(table)
     hdr = next(it)

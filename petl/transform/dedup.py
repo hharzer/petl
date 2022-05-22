@@ -93,23 +93,17 @@ def iterduplicates(source, key):
     yield tuple(hdr)
 
     # convert field selection into field indices
-    if key is None:
-        indices = range(len(hdr))
-    else:
-        indices = asindices(hdr, key)
-        
+    indices = range(len(hdr)) if key is None else asindices(hdr, key)
     # now use field indices to construct a _getkey function
     # N.B., this may raise an exception on short rows, depending on
     # the field selection
     getkey = operator.itemgetter(*indices)
-    
+
     previous = None
     previous_yielded = False
-    
+
     for row in it:
-        if previous is None:
-            previous = row
-        else:
+        if previous is not None:
             kprev = getkey(previous)
             kcurr = getkey(row)
             if kprev == kcurr:
@@ -120,7 +114,7 @@ def iterduplicates(source, key):
             else:
                 # reset
                 previous_yielded = False
-            previous = row
+        previous = row
     
     
 def unique(table, key=None, presorted=False, buffersize=None, tempdir=None,
@@ -193,11 +187,7 @@ def iterunique(source, key):
     yield tuple(hdr)
 
     # convert field selection into field indices
-    if key is None:
-        indices = range(len(hdr))
-    else:
-        indices = asindices(hdr, key)
-        
+    indices = range(len(hdr)) if key is None else asindices(hdr, key)
     # now use field indices to construct a _getkey function
     # N.B., this may raise an exception on short rows, depending on
     # the field selection
@@ -210,7 +200,7 @@ def iterunique(source, key):
 
     prev_key = getkey(prev)
     prev_comp_ne = True
-    
+
     for curr in it:
         curr_key = getkey(curr)
         curr_comp_ne = (curr_key != prev_key)
@@ -219,7 +209,7 @@ def iterunique(source, key):
         prev = curr
         prev_key = curr_key
         prev_comp_ne = curr_comp_ne
-        
+
     # last one?
     if prev_comp_ne:
         yield prev
@@ -324,7 +314,7 @@ def iterconflicts(source, key, missing, exclude, include):
     # exclude overrides include
     if include and exclude:
         include = None
-        
+
     it = iter(source)
     hdr = next(it)
     flds = list(map(text_type, hdr))
@@ -332,31 +322,31 @@ def iterconflicts(source, key, missing, exclude, include):
 
     # convert field selection into field indices
     indices = asindices(hdr, key)
-                    
+
     # now use field indices to construct a _getkey function
     # N.B., this may raise an exception on short rows, depending on
     # the field selection
     getkey = operator.itemgetter(*indices)
-    
+
     previous = None
     previous_yielded = False
-    
+
     for row in it:
-        if previous is None:
-            previous = row
-        else:
+        if previous is not None:
             kprev = getkey(previous)
             kcurr = getkey(row)
             if kprev == kcurr:
-                # is there a conflict?
-                conflict = False
-                for x, y, f in zip(previous, row, flds):
-                    if (exclude and f not in exclude) \
-                            or (include and f in include) \
-                            or (not exclude and not include):
-                        if missing not in (x, y) and x != y:
-                            conflict = True
-                            break
+                conflict = any(
+                    (
+                        (exclude and f not in exclude)
+                        or (include and f in include)
+                        or (not exclude and not include)
+                    )
+                    and missing not in (x, y)
+                    and x != y
+                    for x, y, f in zip(previous, row, flds)
+                )
+
                 if conflict:
                     if not previous_yielded:
                         yield tuple(previous)
@@ -365,7 +355,7 @@ def iterconflicts(source, key, missing, exclude, include):
             else:
                 # reset
                 previous_yielded = False
-            previous = row
+        previous = row
 
 
 def distinct(table, key=None, count=None, presorted=False, buffersize=None,
@@ -410,11 +400,7 @@ class DistinctView(Table):
         hdr = next(it)
 
         # convert field selection into field indices
-        if self.key is None:
-            indices = range(len(hdr))
-        else:
-            indices = asindices(hdr, self.key)
-
+        indices = range(len(hdr)) if self.key is None else asindices(hdr, self.key)
         # now use field indices to construct a _getkey function
         # N.B., this may raise an exception on short rows, depending on
         # the field selection
@@ -422,8 +408,7 @@ class DistinctView(Table):
 
         INIT = object()
         if self.count:
-            hdr = tuple(hdr) + (self.count,)
-            yield hdr
+            yield tuple(hdr) + (self.count,)
             previous = INIT
             n_dup = 1
             for row in it:

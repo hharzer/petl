@@ -179,10 +179,7 @@ def iterhdf5(source, where, name, condition, condvars, start, stop, step):
 
     with _get_hdf5_table(source, where, name) as h5tbl:
 
-        # header row
-        hdr = tuple(h5tbl.colnames)
-        yield hdr
-
+        yield tuple(h5tbl.colnames)
         # determine how to iterate over the table
         if condition is not None:
             it = h5tbl.where(condition, condvars=condvars,
@@ -273,10 +270,7 @@ def iterhdf5sorted(source, where, name, sortby, checkCSI, start, stop, step):
 
     with _get_hdf5_table(source, where, name) as h5tbl:
 
-        # header row
-        hdr = tuple(h5tbl.colnames)
-        yield hdr
-
+        yield tuple(h5tbl.colnames)
         it = h5tbl.itersorted(sortby,
                               checkCSI=checkCSI,
                               start=start,

@@ -93,10 +93,7 @@ def itertextindex(index_or_dirname, indexname, docnum_field):
 
         if docnum_field is None:
 
-            # figure out the field names
-            hdr = tuple(index.schema.stored_names())
-            yield hdr
-
+            yield tuple(index.schema.stored_names())
             # yield all documents
             astuple = operator.itemgetter(*index.schema.stored_names())
             for _, stored_fields_dict in index.reader().iter_docs():
@@ -104,10 +101,7 @@ def itertextindex(index_or_dirname, indexname, docnum_field):
 
         else:
 
-            # figure out the field names
-            hdr = (docnum_field,) + tuple(index.schema.stored_names())
-            yield hdr
-
+            yield (docnum_field,) + tuple(index.schema.stored_names())
             # yield all documents
             astuple = operator.itemgetter(*index.schema.stored_names())
             for docnum, stored_fields_dict in index.reader().iter_docs():
@@ -410,7 +404,7 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
     import whoosh.qparser
 
     if not search_kwargs:
-        search_kwargs = dict()
+        search_kwargs = {}
 
     if isinstance(index_or_dirname, string_types):
         dirname = index_or_dirname
@@ -446,9 +440,7 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
                 fieldboosts=fieldboosts
             )
             query = parser.parse(query)
-        elif isinstance(query, whoosh.query.Query):
-            pass
-        else:
+        elif not isinstance(query, whoosh.query.Query):
             raise ArgumentError(
                 'expected string or whoosh.query.Query, found %r' % query
             )

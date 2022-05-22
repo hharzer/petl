@@ -114,7 +114,6 @@ class Uncloseable(object):
 
     def close(self):
         debug('Uncloseable: close called (%r)' % self._inner)
-        pass
 
 
 def _get_stdout_binary():
@@ -246,25 +245,16 @@ class MemorySource(object):
         try:
             if 'r' in mode:
                 if self.s is not None:
-                    if 'b' in mode:
-                        self.buffer = BytesIO(self.s)
-                    else:
-                        self.buffer = StringIO(self.s)
+                    self.buffer = BytesIO(self.s) if 'b' in mode else StringIO(self.s)
                 else:
                     raise ArgumentError('no string data supplied')
             elif 'w' in mode:
                 if self.buffer is not None:
                     self.buffer.close()
-                if 'b' in mode:
-                    self.buffer = BytesIO()
-                else:
-                    self.buffer = StringIO()
+                self.buffer = BytesIO() if 'b' in mode else StringIO()
             elif 'a' in mode:
                 if self.buffer is None:
-                    if 'b' in mode:
-                        self.buffer = BytesIO()
-                    else:
-                        self.buffer = StringIO()
+                    self.buffer = BytesIO() if 'b' in mode else StringIO()
             yield Uncloseable(self.buffer)
         except:
             raise
@@ -346,9 +336,8 @@ def _register_handler(handler_type, handler_class, handler_list):
 
 def _get_handler(handler_type, handler_list):
 
-    if isinstance(handler_type, string_types):
-        if handler_type in handler_list:
-            return handler_list[handler_type]
+    if isinstance(handler_type, string_types) and handler_type in handler_list:
+        return handler_list[handler_type]
     return None
 
 
@@ -418,10 +407,14 @@ register_reader('https', URLSource)
 
 
 def _get_codec_for(source):
-    for ext, codec_class in _CODECS.items():
-        if source.endswith(ext):
-            return codec_class
-    return None
+    return next(
+        (
+            codec_class
+            for ext, codec_class in _CODECS.items()
+            if source.endswith(ext)
+        ),
+        None,
+    )
 
 
 def _get_handler_from(source, handlers):
@@ -429,10 +422,14 @@ def _get_handler_from(source, handlers):
     if protocol_index <= 0:
         return None
     protocol = source[:protocol_index]
-    for prefix, handler_class in handlers.items():
-        if prefix == protocol:
-            return handler_class
-    return None
+    return next(
+        (
+            handler_class
+            for prefix, handler_class in handlers.items()
+            if prefix == protocol
+        ),
+        None,
+    )
 
 
 def _resolve_source_from_arg(source, handlers):

@@ -212,13 +212,10 @@ def convert(table, *args, **kwargs):
     elif len(args) == 1:
         converters = args[0]
     elif len(args) > 1:
-        converters = dict()
+        converters = {}
         # assume first arg is field name or spec
         field = args[0]
-        if len(args) == 2:
-            conv = args[1]
-        else:
-            conv = args[1:]
+        conv = args[1] if len(args) == 2 else args[1:]
         if isinstance(field, (list, tuple)):  # allow for multiple fields
             for f in field:
                 converters[f] = conv
@@ -328,11 +325,11 @@ class FieldConvertView(Table):
                  errorvalue=None, where=None, pass_row=False):
         self.source = source
         if converters is None:
-            self.converters = dict()
+            self.converters = {}
         elif isinstance(converters, dict):
             self.converters = converters
         elif isinstance(converters, (tuple, list)):
-            self.converters = dict([(i, v) for i, v in enumerate(converters)])
+            self.converters = dict(list(enumerate(converters)))
         else:
             raise ArgumentError('unexpected converters: %r' % converters)
         self.failonerror = (config.failonerror if failonerror is None
@@ -401,16 +398,15 @@ def iterfieldconvert(source, converters, failonerror, errorvalue, where,
         if i not in converter_functions:
             # no converter defined on this field, return value as-is
             return v
-        else:
-            try:
-                return converter_functions[i](v, *args)
-            except Exception as e:
-                if failonerror == 'inline':
-                    return e
-                elif failonerror:
-                    raise e
-                else:
-                    return errorvalue
+        try:
+            return converter_functions[i](v, *args)
+        except Exception as e:
+            if failonerror == 'inline':
+                return e
+            elif failonerror:
+                raise e
+            else:
+                return errorvalue
 
     # define a function to transform a row
     if pass_row:
@@ -455,10 +451,7 @@ def methodcaller(nm, *args):
 def dictconverter(d):
     def conv(v):
         try:
-            if v in d:
-                return d[v]
-            else:
-                return v
+            return d[v] if v in d else v
         except TypeError:
             # value is not hashable
             return v

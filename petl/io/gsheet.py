@@ -12,16 +12,13 @@ def _get_gspread_client(auth_info):
     if isinstance(auth_info, gspread.Client):
         return auth_info
     if isinstance(auth_info, dict):
-        gd = gspread.service_account_from_dict(auth_info)
-        return gd
+        return gspread.service_account_from_dict(auth_info)
     import google
 
     if isinstance(auth_info, google.oauth2.service_account.Credentials):
-        gc = gspread.authorize(auth_info)
-        return gc
+        return gspread.authorize(auth_info)
     if auth_info is None:
-        ga = gspread.service_account()
-        return ga
+        return gspread.service_account()
     raise PetlArgError("gspread: Invalid account credentials")
 
 

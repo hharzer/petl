@@ -41,10 +41,7 @@ class XLSView(Table):
             with source.open('rb') as source2:
                 source3 = source2.read()
                 wb = xlutils_view.View(source3, **self.kwargs)
-                if self.sheet is None:
-                    ws = wb[0]
-                else:
-                    ws = wb[self.sheet]
+                ws = wb[0] if self.sheet is None else wb[self.sheet]
                 for row in ws:
                     yield tuple(row)
         else:

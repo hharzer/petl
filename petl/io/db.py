@@ -144,8 +144,7 @@ class DbView(Table):
 def _iter_dbapi_mkcurs(mkcurs, query, *args, **kwargs):
     cursor = mkcurs()
     try:
-        for row in _iter_dbapi_cursor(cursor, query, *args, **kwargs):
-            yield row
+        yield from _iter_dbapi_cursor(cursor, query, *args, **kwargs)
     finally:
         cursor.close()
 
@@ -153,8 +152,7 @@ def _iter_dbapi_mkcurs(mkcurs, query, *args, **kwargs):
 def _iter_dbapi_connection(connection, query, *args, **kwargs):
     cursor = connection.cursor()
     try:
-        for row in _iter_dbapi_cursor(cursor, query, *args, **kwargs):
-            yield row
+        yield from _iter_dbapi_cursor(cursor, query, *args, **kwargs)
     finally:
         cursor.close()
 
@@ -178,14 +176,12 @@ def _iter_dbapi_cursor(cursor, query, *args, **kwargs):
     if first_row is None:
         return
     yield first_row
-    for row in it:
-        yield row  # don't wrap, return whatever the database engine returns
+    yield from it
 
 
 def _iter_sqlalchemy_engine(engine, query, *args, **kwargs):
     connection = engine.connect()
-    for row in _iter_sqlalchemy_connection(connection, query, *args, **kwargs):
-        yield row
+    yield from _iter_sqlalchemy_connection(connection, query, *args, **kwargs)
     connection.close()
 
 
@@ -194,16 +190,14 @@ def _iter_sqlalchemy_connection(connection, query, *args, **kwargs):
     results = connection.execute(query, *args, **kwargs)
     hdr = results.keys()
     yield tuple(hdr)
-    for row in results:
-        yield row
+    yield from results
 
 
 def _iter_sqlalchemy_session(session, query, *args, **kwargs):
     results = session.execute(query, *args, **kwargs)
     hdr = results.keys()
     yield tuple(hdr)
-    for row in results:
-        yield row
+    yield from results
 
 
 def todb(table, dbo, tablename, schema=None, commit=True,
@@ -411,7 +405,7 @@ def _todb_dbapi_connection(table, connection, tablename, schema=None,
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
     debug('tablename: %r', tablename)
 
     # sanitise field names
@@ -458,7 +452,7 @@ def _todb_clikchouse_dbapi_connection(table, connection, tablename, schema=None,
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
     debug('tablename: %r', tablename)
 
     # sanitise field names
@@ -478,7 +472,7 @@ def _todb_clikchouse_dbapi_connection(table, connection, tablename, schema=None,
     if truncate:
         # TRUNCATE is not supported in some databases and causing locks with
         # MySQL used via SQLAlchemy, fall back to DELETE FROM for now
-        truncatequery = 'TRUNCATE TABLE IF EXISTS %s' % tablename
+        truncatequery = f'TRUNCATE TABLE IF EXISTS {tablename}'
         debug('truncate the table via query %r', truncatequery)
         cursor.execute(truncatequery)
         # just in case, close and resurrect cursor
@@ -486,7 +480,7 @@ def _todb_clikchouse_dbapi_connection(table, connection, tablename, schema=None,
         cursor = connection.cursor()
 
     insertcolnames = ', '.join(colnames)
-    insertquery = 'INSERT INTO %s (%s) VALUES' % (tablename, insertcolnames)
+    insertquery = f'INSERT INTO {tablename} ({insertcolnames}) VALUES'
     debug('insert data via query %r' % insertquery)
     cursor.executemany(insertquery, it)
 
@@ -505,7 +499,7 @@ def _todb_dbapi_mkcurs(table, mkcurs, tablename, schema=None, commit=True,
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
     debug('tablename: %r', tablename)
 
     # sanitise field names
@@ -553,7 +547,7 @@ def _todb_dbapi_cursor(table, cursor, tablename, schema=None, commit=True,
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
     debug('tablename: %r', tablename)
 
     # sanitise field names
@@ -607,7 +601,7 @@ def _todb_sqlalchemy_connection(table, connection, tablename, schema=None,
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
     debug('tablename: %r', tablename)
 
     # sanitise field names

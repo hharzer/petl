@@ -117,14 +117,14 @@ Table.sort = sort
 
 def _iterchunk(fn):
     # reopen so iterators from file cache are independent
-    debug('iterchunk, opening %s' % fn)
+    debug(f'iterchunk, opening {fn}')
     with open(fn, 'rb') as f:
         try:
             while True:
                 yield pickle.load(f)
         except EOFError:
             pass
-    debug('end of iterchunk, closed %s' % fn)
+    debug(f'end of iterchunk, closed {fn}')
 
 
 class _Keyed(namedtuple('Keyed', ['key', 'obj'])):
@@ -156,8 +156,7 @@ def _heapqmergesorted(key=None, *iterables):
 
     if key is None:
         keyed_iterables = iterables
-        for element in heapq.merge(*keyed_iterables):
-            yield element
+        yield from heapq.merge(*keyed_iterables)
     else:
         keyed_iterables = [(_Keyed(key(obj), obj) for obj in iterable)
                            for iterable in iterables]
@@ -172,18 +171,12 @@ def _shortlistmergesorted(key=None, reverse=False, *iterables):
     :func:`min` (or :func:`max` if ``reverse=True``) for the underlying
     implementation."""
 
-    if reverse:
-        op = max
-    else:
-        op = min
-    if key is not None:
-        opkwargs = {'key': key}
-    else:
-        opkwargs = dict()
+    op = max if reverse else min
+    opkwargs = {'key': key} if key is not None else dict()
     # populate initial shortlist
     # (remember some iterables might be empty)
-    iterators = list()
-    shortlist = list()
+    iterators = []
+    shortlist = []
     for iterable in iterables:
         it = iter(iterable)
         try:
@@ -224,10 +217,7 @@ class SortView(Table):
         self.source = source
         self.key = key
         self.reverse = reverse
-        if buffersize is None:
-            self.buffersize = config.sort_buffersize
-        else:
-            self.buffersize = buffersize
+        self.buffersize = config.sort_buffersize if buffersize is None else buffersize
         self.tempdir = tempdir
         self.cache = cache
         self._hdrcache = None
@@ -289,11 +279,7 @@ class SortView(Table):
         hdr = next(it)
         yield tuple(hdr)
 
-        if key is not None:
-            # convert field selection into field indices
-            indices = asindices(hdr, key)
-        else:
-            indices = range(len(hdr))
+        indices = asindices(hdr, key) if key is not None else range(len(hdr))
         # now use field indices to construct a _getkey function
         getkey = comparable_itemgetter(*indices)
 
@@ -326,14 +312,14 @@ class SortView(Table):
 
                 # dump the chunk
                 with NamedTemporaryFile(dir=self.tempdir, delete=False,
-                                        mode='wb') as f:
+                                                    mode='wb') as f:
                     # N.B., we **don't** want the file to be deleted on close,
                     # but we **do** want the file to be deleted when self
                     # is garbage collected, or when the program exits. When
                     # all references to the wrapper are gone, the file should
                     # get deleted.
                     wrapper = _NamedTempFileDeleteOnGC(f.name)
-                    debug('created temporary chunk file %s' % f.name)
+                    debug(f'created temporary chunk file {f.name}')
                     for row in rows:
                         pickle.dump(row, f, protocol=-1)
                     f.flush()
@@ -362,13 +348,13 @@ class _NamedTempFileDeleteOnGC(object):
     def delete(self, unlink=os.unlink, log=logger.debug):
         name = self.name
         try:
-            log('deleting %s' % name)
+            log(f'deleting {name}')
             unlink(name)
         except Exception as e:
-            log('exception deleting %s: %s' % (name, e))
+            log(f'exception deleting {name}: {e}')
             raise
         else:
-            log('deleted %s' % name)
+            log(f'deleted {name}')
 
     def __del__(self):
         self.delete()
@@ -554,7 +540,7 @@ def issorted(table, key=None, reverse=False, strict=False):
     # determine the operator to use when comparing rows
     if reverse and strict:
         op = operator.lt
-    elif reverse and not strict:
+    elif reverse:
         op = operator.le
     elif strict:
         op = operator.gt

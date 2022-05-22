@@ -169,8 +169,10 @@ finally:
         # exercise sqlalchemy dbapi_connection
         _setup_mysql(dbapi_connection)
         from sqlalchemy import create_engine
-        sqlalchemy_engine = create_engine('mysql+pymysql://%s:%s@%s/%s' %
-                                          (user, password, host, database))
+        sqlalchemy_engine = create_engine(
+            f'mysql+pymysql://{user}:{password}@{host}/{database}'
+        )
+
         from sqlalchemy.event import listen
         listen(sqlalchemy_engine, "connect", _setup_sqlalchemy_quotes)
         sqlalchemy_connection = sqlalchemy_engine.connect()
@@ -187,8 +189,11 @@ finally:
 
         # exercise sqlalchemy engine
         _setup_mysql(dbapi_connection)
-        sqlalchemy_engine2 = create_engine('mysql+pymysql://%s:%s@%s/%s' %
-                                           (user, password, host, database), echo_pool='debug')
+        sqlalchemy_engine2 = create_engine(
+            f'mysql+pymysql://{user}:{password}@{host}/{database}',
+            echo_pool='debug',
+        )
+
         listen(sqlalchemy_engine2, "connect", _setup_sqlalchemy_quotes)
         _test_dbo(sqlalchemy_engine2)
         sqlalchemy_engine2.dispose()
@@ -240,8 +245,10 @@ finally:
         # exercise sqlalchemy dbapi_connection
         _setup_mysql(dbapi_connection)
         from sqlalchemy import create_engine
-        sqlalchemy_engine = create_engine('mysql+mysqldb://%s:%s@%s/%s' %
-                                          (user, password, host, database))
+        sqlalchemy_engine = create_engine(
+            f'mysql+mysqldb://{user}:{password}@{host}/{database}'
+        )
+
         from sqlalchemy.event import listen
         listen(sqlalchemy_engine, "connect", _setup_sqlalchemy_quotes)
         sqlalchemy_connection = sqlalchemy_engine.connect()
@@ -287,9 +294,9 @@ finally:
 
         # assume database already created
         dbapi_connection = psycopg2.connect(
-            'host=%s dbname=%s user=%s password=%s'
-            % (host, database, user, password)
+            f'host={host} dbname={database} user={user} password={password}'
         )
+
 
         # exercise using a dbapi_connection
         _setup_postgresql(dbapi_connection)
@@ -304,8 +311,10 @@ finally:
         # exercise sqlalchemy dbapi_connection
         _setup_postgresql(dbapi_connection)
         from sqlalchemy import create_engine
-        sqlalchemy_engine = create_engine('postgresql+psycopg2://%s:%s@%s/%s' %
-                                          (user, password, host, database))
+        sqlalchemy_engine = create_engine(
+            f'postgresql+psycopg2://{user}:{password}@{host}/{database}'
+        )
+
         sqlalchemy_connection = sqlalchemy_engine.connect()
         _test_dbo(sqlalchemy_connection)
         sqlalchemy_connection.close()

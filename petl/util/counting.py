@@ -142,12 +142,9 @@ class ValueCountsView(Table):
 
     def __iter__(self):
 
-        # construct output header
-        if isinstance(self.field, (tuple, list)):
-            outhdr = tuple(self.field) + ('count', 'frequency')
-        else:
-            outhdr = (self.field, 'count', 'frequency')
-        yield outhdr
+        yield tuple(self.field) + ('count', 'frequency') if isinstance(
+            self.field, (tuple, list)
+        ) else (self.field, 'count', 'frequency')
 
         # count values
         counter = valuecounter(self.table, *self.field, missing=self.missing)
@@ -420,11 +417,10 @@ def stringpatterns(table, field):
     """
 
     counter = stringpatterncounter(table, field)
-    output = [('pattern', 'count', 'frequency')]
     counter = counter.most_common()
     total = sum(c[1] for c in counter)
     cnts = [(c[0], c[1], float(c[1])/total) for c in counter]
-    output.extend(cnts)
+    output = [('pattern', 'count', 'frequency'), *cnts]
     return wrap(output)
 
 

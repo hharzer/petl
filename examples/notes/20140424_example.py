@@ -30,10 +30,7 @@ tbl1
 # <codecell>
 
 def make_room_for_category(row):
-    if len(row) == 1:
-        return (row[0], 'X', 'X', 'X')
-    else:
-        return (None,) + tuple(row)
+    return (row[0], 'X', 'X', 'X') if len(row) == 1 else (None,) + tuple(row)
 
 tbl2 = tbl1.rowmap(make_room_for_category, fields=['category', 'type', 'price', 'quantity'])
 tbl2
@@ -61,12 +58,10 @@ class CustomTransformer(object):
         
     def __iter__(self):
         it = iter(self.source)
-        
+
         # construct new header
         source_fields = it.next()
-        out_fields = ('category',) + tuple(source_fields)
-        yield out_fields
-        
+        yield ('category',) + tuple(source_fields)
         # transform data
         current_category = None
         for row in it:

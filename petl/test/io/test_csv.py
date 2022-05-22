@@ -114,14 +114,11 @@ def test_fromcsv_gz():
 
     # '\r' not supported in PY2 because universal newline mode is
     # not supported by gzip module
-    if PY2:
-        lts = b'\n', b'\r\n'
-    else:
-        lts = b'\r', b'\n', b'\r\n'
+    lts = (b'\n', b'\r\n') if PY2 else (b'\r', b'\n', b'\r\n')
     for lt in lts:
         f = NamedTemporaryFile(delete=False)
         f.close()
-        fn = f.name + '.gz'
+        fn = f'{f.name}.gz'
         os.rename(f.name, fn)
         fz = gzip.open(fn, 'wb')
         fz.write(lt.join(data))
@@ -249,7 +246,7 @@ def test_tocsv_appendcsv_gz():
              ('b', 2),
              ('c', 2))
     f = NamedTemporaryFile(delete=False)
-    fn = f.name + '.gz'
+    fn = f'{f.name}.gz'
     f.close()
     tocsv(table, fn, encoding='ascii', lineterminator='\n')
 

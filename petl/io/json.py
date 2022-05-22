@@ -108,13 +108,13 @@ class JsonView(Table):
                                      write_through=True)
             try:
                 if self.lines:
-                    for row in iterjlines(f, self.header, self.missing):
-                        yield row
+                    yield from iterjlines(f, self.header, self.missing)
                 else:
                     dicts = json.load(f, *self.args, **self.kwargs)
-                    for row in iterdicts(dicts, self.header, self.sample,
-                                         self.missing):
-                        yield row
+                    yield from iterdicts(
+                        dicts, self.header, self.sample, self.missing
+                    )
+
             finally:
                 if not PY2:
                     f.detach()
@@ -184,7 +184,7 @@ def iterjlines(f, header, missing):
     it = iter(f)
 
     if header is None:
-        header = list()
+        header = []
         peek, it = iterpeek(it, 1)
         json_obj = json.loads(peek)
         if hasattr(json_obj, 'keys'):
@@ -202,7 +202,7 @@ def iterdicts(dicts, header, sample, missing):
     # determine header row
     if header is None:
         # discover fields
-        header = list()
+        header = []
         peek, it = iterpeek(it, sample)
         for o in peek:
             if hasattr(o, 'keys'):
@@ -260,10 +260,7 @@ def tojsonarrays(table, source=None, prefix=None, suffix=None,
 
     """
 
-    if output_header:
-        obj = list(table)
-    else:
-        obj = list(data(table))
+    obj = list(table) if output_header else list(data(table))
     _writejson(source, obj, prefix, suffix, *args, **kwargs)
 
 

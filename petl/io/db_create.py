@@ -67,7 +67,7 @@ def make_sqlalchemy_column(col, colname, constraints=True):
     sql_column_kwargs = {}
     sql_type_kwargs = {}
 
-    if len(col_not_none) == 0:
+    if not col_not_none:
         sql_column_type = sqlalchemy.String
         if constraints:
             sql_type_kwargs['length'] = NULL_COLUMN_MAX_LENGTH
@@ -103,7 +103,7 @@ def make_sqlalchemy_column(col, colname, constraints=True):
     else:
         sql_column_type = sqlalchemy.String
         if constraints:
-            sql_type_kwargs['length'] = max([len(text_type(v)) for v in col])
+            sql_type_kwargs['length'] = max(len(text_type(v)) for v in col)
 
     if constraints:
         sql_column_kwargs['nullable'] = len(col_not_none) < len(col)
@@ -177,8 +177,10 @@ def make_create_table_statement(table, tablename, schema=None,
                                       metadata=metadata)
 
     if dialect:
-        module = __import__('sqlalchemy.dialects.%s' % DIALECTS[dialect],
-                            fromlist=['dialect'])
+        module = __import__(
+            f'sqlalchemy.dialects.{DIALECTS[dialect]}', fromlist=['dialect']
+        )
+
         sql_dialect = module.dialect()
     else:
         sql_dialect = None
@@ -247,9 +249,9 @@ def drop_table(dbo, tablename, schema=None, commit=True):
     # sanitise table name
     tablename = _quote(tablename)
     if schema is not None:
-        tablename = _quote(schema) + '.' + tablename
+        tablename = f'{_quote(schema)}.{tablename}'
 
-    sql = u'DROP TABLE %s' % tablename
+    sql = f'DROP TABLE {tablename}'
     _execute(sql, dbo, commit)
 
 

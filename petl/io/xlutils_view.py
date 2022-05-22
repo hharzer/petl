@@ -54,7 +54,7 @@ class SheetView(object):
         self.sheet = sheet
         for name, source in (('rows', row_slice), ('cols', col_slice)):
             start = 0
-            stop = max_n = getattr(self.sheet, 'n'+name)
+            stop = max_n = getattr(self.sheet, f'n{name}')
             if isinstance(source, slice):
                 if source.start is not None:
                     start_val = source.start
@@ -81,10 +81,7 @@ class SheetView(object):
             if self.sheet.cell_type(rowx, colx) == XL_CELL_DATE:
                 date_parts = xldate_as_tuple(value, self.book.datemode)
                 # Times come out with a year of 0.
-                if date_parts[0]:
-                    value = datetime(*date_parts)
-                else:
-                    value = time(*date_parts[3:])
+                value = datetime(*date_parts) if date_parts[0] else time(*date_parts[3:])
             yield value
             
     def __iter__(self):

@@ -84,16 +84,11 @@ class BcolzView(Table):
             assert all(h in ctbl.names for h in header), 'invalid outcols'
         yield header
 
-        # obtain iterator
-        if self.expression is None:
-            it = ctbl.iter(outcols=self.outcols, skip=self.skip,
-                           limit=self.limit)
-        else:
-            it = ctbl.where(self.expression, outcols=self.outcols, skip=self.skip,
-                           limit=self.limit)
-
-        for row in it:
-            yield row
+        yield from ctbl.iter(
+            outcols=self.outcols, skip=self.skip, limit=self.limit
+        ) if self.expression is None else ctbl.where(
+            self.expression, outcols=self.outcols, skip=self.skip, limit=self.limit
+        )
 
 
 def tobcolz(table, dtype=None, sample=1000, **kwargs):
